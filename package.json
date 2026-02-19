@@ -1,0 +1,79 @@
+{
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.14.5",
+    "@babel/plugin-proposal-optional-chaining": "^7.14.5",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.15",
+    "@mui/lab": "^5.0.0-alpha.170",
+    "@mui/material": "^5.15.20",
+    "@mui/styles": "^5.15.15",
+    "@mui/system": "^5.15.15",
+    "@mui/x-data-grid": "^7.15.0",
+    "@react-google-maps/api": "^2.19.3",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^15.0.2",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/googlemaps": "^3.43.3",
+    "@types/jest": "^27.5.2",
+    "@types/jwt-decode": "^3.1.0",
+    "@types/node": "^16.18.34",
+    "@types/react": "^18.2.8",
+    "@types/react-dom": "^18.2.4",
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^0.21.0",
+    "bootstrap": "^5.3.0",
+    "firebase": "^10.4.0",
+    "jwt-decode": "^4.0.0",
+    "moment": "^2.29.4",
+    "ol": "^7.4.0",
+    "openlayers": "^4.6.5",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.7.4",
+    "react-clock": "^4.2.0",
+    "react-dom": "^18.2.0",
+    "react-dotenv": "^0.1.3",
+    "react-google-maps": "^9.4.5",
+    "react-google-maps-api": "^1.0.8",
+    "react-helmet": "^6.1.0",
+    "react-hook-form": "^7.46.1",
+    "react-router-dom": "5",
+    "react-scripts": "^5.0.1",
+    "react-toastify": "^10.0.5",
+    "sass": "^1.63.4",
+    "socket.io-client": "^4.7.2",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4",
+    "websocket": "^1.0.34"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/bootstrap": "^5.2.10"
+  }
+}
