@@ -9,7 +9,7 @@ import { Button } from '@mui/material';
 import DisplayGeoFence from './geofencing';
 import AddGeoFence from './addGeoFence';
 import { LoadScript } from '@react-google-maps/api';
-import app from '../../http_settings';
+// import app from '../../http_settings';
 import EditGeofence from './editGeofence';
 
 
@@ -24,32 +24,32 @@ function GeoFencing() {
   const [coordinates, setCoordinates] = useState<any>([]);
   const [center, setCenter] = useState<any>();
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setValue(event.target.value);
-    if (event.target.value !== "0") {
-      getGeoFencing(event.target.value)
-    } else {
-      app.get("/api/geofencing/").then((res: any) => {
-        setCoordinates(res.data)
-      })
-    }
-  };
+  // const handleChange = (event: SelectChangeEvent) => {
+  //   setValue(event.target.value);
+  //   if (event.target.value !== "0") {
+  //     getGeoFencing(event.target.value)
+  //   } else {
+  //     app.get("/api/geofencing/").then((res: any) => {
+  //       setCoordinates(res.data)
+  //     })
+  //   }
+  // };
 
-  useEffect(() => {
-    app.get("/api/geofencing/").then((res: any) => {
-      setData(res.data)
-      console.log(res.data)
-      setCoordinates(res.data)
-    })
-  }, [])
+  // useEffect(() => {
+  //   app.get("/api/geofencing/").then((res: any) => {
+  //     setData(res.data)
+  //     console.log(res.data)
+  //     setCoordinates(res.data)
+  //   })
+  // }, [])
 
-  const getGeoFencing = (id: any) => {
-    app.get(`/api/geofencing/${id}`).then((res) => {
-      // setCoordinates(JSON.parse(res.data.coordinates))
-      setCoordinates(res.data)
-      setCenter(JSON.parse(res.data.center))
-    })
-  }
+  // const getGeoFencing = (id: any) => {
+  //   app.get(`/api/geofencing/${id}`).then((res) => {
+  //     // setCoordinates(JSON.parse(res.data.coordinates))
+  //     setCoordinates(res.data)
+  //     setCenter(JSON.parse(res.data.center))
+  //   })
+  // }
 
   
 
@@ -64,7 +64,7 @@ function GeoFencing() {
               id="demo-simple-select"
               value={value}
               label="Place"
-              onChange={handleChange}
+              // onChange={handleChange}
             >
               <MenuItem value="0">All</MenuItem>
               {

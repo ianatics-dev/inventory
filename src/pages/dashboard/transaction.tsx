@@ -11,7 +11,7 @@ import moment from 'moment';
 import Button from '@mui/material/Button';
 import { FormControl, InputLabel, MenuItem, Pagination, Select, TextField, Tooltip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import LocateModal from '../components/transaction_components/locateModal';
+// import LocateModal from '../components/transaction_components/locateModal';
 import ExploreIcon from '@mui/icons-material/Explore';
 import app from '../../http_settings';
 
@@ -130,7 +130,7 @@ export default function TransactionTable() {
         </TableBody>
       </Table>
       <Pagination count={count} color="secondary" sx={{ marginTop: "10px" }} onChange={handleNextPage} />
-      <LocateModal open={openLocate} onClose={handleOnCloseLocate} />
+      {/* <LocateModal open={openLocate} onClose={handleOnCloseLocate} /> */}
       {/* <Link color="primary" href="#" onClick={preventDefault} sx={{ mt: 3 }}>
         See more orders
       </Link> */}

@@ -1,78 +1,53 @@
-// src/pages/PersonDashboard.tsx  (or wherever your Issued page is)
-import React, { useEffect, useState } from "react";
+// on_stock.tsx  (All Firearms)
+import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import Title from "./Title";
 import { Box, Button } from "@mui/material";
 import { TabContext, TabPanel } from "@mui/lab";
 
-import PersonTable from "./person_components/components/PersonTable";
-import CreatePersonModal from "./person_components/PersonModal"; // ✅ issue modal (we already made)
 import ImportFileModal from "./person_components/ImportFile";
+import CreateIssuanceModal from "./person_components/RankModal";
+// ✅ Import RankTable from correct file
+import RankTable from "./person_components/firearms_components/RankTable";
 
 import app from "../../http_settings";
+
 import { ReactComponent as AddIcon } from "../../assets/add-circle-svgrepo-com.svg";
 import { ReactComponent as UploadIcon } from "../../assets/upload-svgrepo-com.svg";
-import { logActivity } from "./utils";
 
-export default function PersonDashboard() {
+export default function OnStock() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [rows, setRows] = useState<any[]>([]);
   const [importModalOpen, setImportModalOpen] = useState(false);
-
-  // ✅ Issued rows are GUNS now
-  const [issuedRows, setIssuedRows] = useState<any[]>([]);
-  const [count, setCount] = useState<any>(0);
-  const [isAdmin, setIsAdmin] = useState<any>(false);
+  const [value] = useState("1");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setSuperIsAdmin] = useState<any>(false);
 
-  const [value] = useState("1");
-
-  const fetchIssued = async () => {
-    try {
-      // ✅ preferred endpoint
-      const res = await app.get("/api/guns/issued/");
-      setIssuedRows(Array.isArray(res.data) ? res.data : []);
-      setCount(Array.isArray(res.data) ? res.data.length : 0);
-    } catch (e) {
-      // ✅ fallback: filter from /api/guns/
-      const res2 = await app.get("/api/guns/");
-      const issued = (res2.data ?? []).filter((g: any) => g.disposition === "ISSUED");
-      setIssuedRows(issued);
-      setCount(issued.length);
-    }
-  };
-
   useEffect(() => {
+    app.get(`/api/guns/`).then((res: any) => {
+      setRows(res.data);
+    });
+
     const role = localStorage.getItem("role");
     const isAdmin = role === "admin";
     setIsAdmin(isAdmin)
     const isSuperAdmin = role === "super_admin";
     setSuperIsAdmin(isSuperAdmin)
-
-    fetchIssued();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-
-    logActivity({
-      action: "VIEW",
-      module: "Issued Firearms",
-      description: "Viewed Issued Firearms table",
-    });
   }, []);
 
   const handleImport = async (file: File) => {
-    // ignore for now as you requested
+    // ignore import for now as you said
     // console.log("Uploading file:", file);
+
     const fd = new FormData();
     fd.append("file", file);
 
-    try {
-      const res = await app.post("/api/import-issued-excel/", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    await app.post("/api/import-guns/", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
-      console.log(res.data);
-    } catch (err: any) {
-      console.error(err?.response?.data || err);
-    }
+    // refresh table
+    window.location.reload();
   };
 
   return (
@@ -81,14 +56,13 @@ export default function PersonDashboard() {
         <TabContext value={value}>
           <TabPanel value="1">
             <React.Fragment>
-              <Title>All Issued Firearms</Title>
+              <Title>All Firearms</Title>
 
               {(isAdmin || isSuperAdmin) && (
                 <Box display="flex" justifyContent="flex-end" marginBottom={2}>
                   <Button variant="contained" onClick={() => setModalOpen(true)}>
                     <AddIcon width={30} height={30} />
                   </Button>
-
                   <Button
                     variant="contained"
                     onClick={() => setImportModalOpen(true)}
@@ -99,20 +73,19 @@ export default function PersonDashboard() {
                 </Box>
               )}
 
-              <PersonTable rows={issuedRows} count={count} pagination={() => { }} />
+              {/* ✅ now rows are guns directly */}
+              <RankTable rows={rows} setRows={setRows} />
             </React.Fragment>
           </TabPanel>
         </TabContext>
       </Box>
 
-      {/* ✅ Issue firearm modal */}
-      <CreatePersonModal
+      <CreateIssuanceModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onCreated={(issuedGunRow: any) => {
-          // ✅ add new issued gun on top
-          setIssuedRows((prev) => [issuedGunRow, ...prev]);
-          setCount((c: any) => (typeof c === "number" ? c + 1 : c));
+        onCreated={(createdGunRow: any) => {
+          // ✅ add new gun row instantly
+          setRows((prev: any[]) => [createdGunRow, ...prev]);
         }}
       />
 
@@ -124,3 +97,4 @@ export default function PersonDashboard() {
     </Grid>
   );
 }
+
