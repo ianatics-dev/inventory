@@ -2,11 +2,13 @@ import React from "react";
 import { Switch } from "react-router-dom";
 
 import Dashboard from "./pages/dashboard";
-import PersonDashboard from "./pages/components/person";
-import OnStock from "./pages/components/on_stock";
+import PersonDashboard from "./pages/components/short_arm/person";
+import IssuedDashboard from "./pages/components/long_arm/issued";
+import OnStock from "./pages/components/short_arm/on_stock";
 import UsersTable from "./pages/components/UserTable";
 import ProtectedRoute from "./ProtectedRoute";
 import ActivityLogTable from "./pages/components/activity_logs";
+import LongArmOnStock from "./pages/components/long_arm/on_stock";
 
 const routers = () => {
   return (
@@ -32,16 +34,32 @@ const routers = () => {
         allowedRoles={["super_admin"]}
       />
 
+      {/* long arm ni sya */}
       <ProtectedRoute
         exact
-        path="/admin/firearms"
-        component={OnStock}
+        path="/admin/firearms/long-arm"
+        component={LongArmOnStock}
         allowedRoles={["admin", "super_admin", "viewer"]}
       />
 
       <ProtectedRoute
         exact
-        path="/admin/issued"
+        path="/admin/firearms/short-arm"
+        component={OnStock}
+        allowedRoles={["admin", "super_admin", "viewer"]}
+      />
+
+      {/* long arm ni sya sa issued */}
+      <ProtectedRoute
+        exact
+        path="/admin/issued/long-arm"
+        component={IssuedDashboard}
+        allowedRoles={["admin", "super_admin", "viewer"]}
+      />
+
+      <ProtectedRoute
+        exact
+        path="/admin/issued/short-arm"
         component={PersonDashboard}
         allowedRoles={["admin", "super_admin", "viewer"]}
       />

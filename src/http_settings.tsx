@@ -1,7 +1,7 @@
 import axios from "axios";
 import { logoutAndRedirect } from "./auth";
 
-const URL: string = process.env.REACT_APP_BASE_URL || "http://localhost:8000/";
+const URL: string = process.env.REACT_APP_BASE_URL || "http://127.0.0.1:8000/";
 
 const app = axios.create({
   baseURL: URL,

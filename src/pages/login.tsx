@@ -160,6 +160,7 @@ const Landing: React.FC = () => {
       // });
 
       // console.log(test)
+      console.log(user)
 
       setSpin(false);
       setOpenLogin(false);

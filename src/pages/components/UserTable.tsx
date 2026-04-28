@@ -25,7 +25,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+// import "react-toastify/dist/ReactToastify.css";
 
 import app from "../../http_settings";
 
@@ -95,7 +95,7 @@ export default function UsersTable() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const res = await app.get("/api/accounts/users/");
+            const res = await app.get("/api/accounts/users/?page=1&page_size=10");
             setRows(res.data);
         } catch (error) {
             console.error(error);
