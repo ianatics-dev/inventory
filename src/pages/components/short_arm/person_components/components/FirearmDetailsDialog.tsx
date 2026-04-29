@@ -82,7 +82,7 @@ const FirearmDetailsDialog: React.FC<Props> = ({
     const [imageOpen, setImageOpen] = useState(false);
     const [selectedImageUrls, setSelectedImageUrls] = useState<string[]>([]);
 
-    const handleUploadSubmit = async (files: File[]) => {
+    const handleUploadSubmit = async (files: File[], date: any) => {
         const gunId = getGunId(selectedRow);
         if (!gunId) return;
 
@@ -90,8 +90,11 @@ const FirearmDetailsDialog: React.FC<Props> = ({
 
         files.forEach((file) => {
             formData.append("img", file);
+            
         });
+        formData.append("date", date);
 
+        console.log(formData)
         try {
             const response = await app.post(
                 `/api/guns/${gunId}/upload_par/`,

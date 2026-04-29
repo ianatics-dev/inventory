@@ -8,6 +8,7 @@ import {
     Button,
     Box,
     IconButton,
+    TextField,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -15,16 +16,20 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 type Props = {
     open: boolean;
     onClose: () => void;
-    onUpload: (files: File[]) => void | Promise<void>;
+    onUpload: (files: File[], date: string) => void | Promise<void>;
 };
 
 const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const [selectedFiles, setSelectedFiles] = useState<(File | null)[]>([null, null]);
+    const [selectedFiles, setSelectedFiles] = useState<(File | null)[]>([
+        null,
+        null,
+    ]);
     const [previewUrls, setPreviewUrls] = useState<string[]>(["", ""]);
     const [activeSlot, setActiveSlot] = useState<number | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [date, setDate] = useState("");
 
     const handleOpenFilePicker = (slotIndex: number) => {
         setActiveSlot(slotIndex);
@@ -33,6 +38,7 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
+
         if (!file || activeSlot === null) return;
 
         setSelectedFiles((prev) => {
@@ -45,12 +51,15 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
     };
 
     const handleUpload = async () => {
-        const filesToUpload = selectedFiles.filter((file): file is File => file !== null);
-        if (filesToUpload.length === 0) return;
+        const filesToUpload = selectedFiles.filter(
+            (file): file is File => file !== null
+        );
+
+        if (filesToUpload.length === 0 || !date) return;
 
         try {
             setUploading(true);
-            await onUpload(filesToUpload);
+            await onUpload(filesToUpload, date);
             handleClose();
         } finally {
             setUploading(false);
@@ -61,6 +70,7 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
         setSelectedFiles([null, null]);
         setPreviewUrls(["", ""]);
         setActiveSlot(null);
+        setDate("");
 
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -70,7 +80,10 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
     };
 
     useEffect(() => {
-        const urls = selectedFiles.map((file) => (file ? URL.createObjectURL(file) : ""));
+        const urls = selectedFiles.map((file) =>
+            file ? URL.createObjectURL(file) : ""
+        );
+
         setPreviewUrls(urls);
 
         return () => {
@@ -90,6 +103,7 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                 }}
             >
                 Import File
+
                 <IconButton onClick={handleClose}>
                     <CloseIcon />
                 </IconButton>
@@ -107,7 +121,10 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        gridTemplateColumns: {
+                            xs: "1fr",
+                            md: "1fr 1fr",
+                        },
                         gap: 2,
                     }}
                 >
@@ -128,8 +145,10 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                                     cursor: "pointer",
                                     overflow: "hidden",
                                     position: "relative",
+                                    backgroundColor: "#fff",
                                     "&:hover": {
-                                        backgroundColor: "rgba(156, 39, 176, 0.04)",
+                                        backgroundColor:
+                                            "rgba(156, 39, 176, 0.04)",
                                     },
                                 }}
                             >
@@ -148,7 +167,10 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                                 ) : (
                                     <Box textAlign="center">
                                         <UploadFileIcon
-                                            sx={{ fontSize: 40, color: "#9c27b0" }}
+                                            sx={{
+                                                fontSize: 40,
+                                                color: "#9c27b0",
+                                            }}
                                         />
                                         <Typography variant="body2">
                                             Click to select image
@@ -159,14 +181,35 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                         );
                     })}
                 </Box>
+
+                <Box sx={{ mt: 3 }}>
+                    <TextField
+                        fullWidth
+                        required
+                        label="Date"
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                </Box>
             </DialogContent>
 
             <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleClose} disabled={uploading}>
+                    Cancel
+                </Button>
+
                 <Button
                     variant="contained"
                     onClick={handleUpload}
-                    disabled={selectedFiles.every((file) => file === null) || uploading}
+                    disabled={
+                        selectedFiles.every((file) => file === null) ||
+                        !date ||
+                        uploading
+                    }
                 >
                     {uploading ? "Uploading..." : "Upload"}
                 </Button>

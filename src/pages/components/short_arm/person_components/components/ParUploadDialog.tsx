@@ -8,6 +8,7 @@ import {
     Button,
     Box,
     IconButton,
+    TextField, // ✅ added
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -15,7 +16,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 type Props = {
     open: boolean;
     onClose: () => void;
-    onUpload: (files: File[]) => void | Promise<void>;
+    onUpload: (files: File[], date: string) => void | Promise<void>; // ✅ include date
 };
 
 const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
@@ -25,6 +26,8 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
     const [previewUrls, setPreviewUrls] = useState<string[]>(["", ""]);
     const [activeSlot, setActiveSlot] = useState<number | null>(null);
     const [uploading, setUploading] = useState(false);
+
+    const [date, setDate] = useState(""); // ✅ new state
 
     const handleOpenFilePicker = (slotIndex: number) => {
         setActiveSlot(slotIndex);
@@ -50,7 +53,7 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
 
         try {
             setUploading(true);
-            await onUpload(filesToUpload);
+            await onUpload(filesToUpload, date); // ✅ pass date
             handleClose();
         } finally {
             setUploading(false);
@@ -61,6 +64,7 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
         setSelectedFiles([null, null]);
         setPreviewUrls(["", ""]);
         setActiveSlot(null);
+        setDate(""); // ✅ reset date
 
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -104,6 +108,7 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                     onChange={handleFileChange}
                 />
 
+                {/* IMAGE BOXES */}
                 <Box
                     sx={{
                         display: "grid",
@@ -159,6 +164,18 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                         );
                     })}
                 </Box>
+
+                {/* ✅ DATE FIELD BELOW */}
+                <Box mt={3}>
+                    <TextField
+                        fullWidth
+                        label="Date Issued"
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                </Box>
             </DialogContent>
 
             <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -166,7 +183,11 @@ const ParUploadDialog: React.FC<Props> = ({ open, onClose, onUpload }) => {
                 <Button
                     variant="contained"
                     onClick={handleUpload}
-                    disabled={selectedFiles.every((file) => file === null) || uploading}
+                    disabled={
+                        selectedFiles.every((file) => file === null) ||
+                        uploading ||
+                        !date // optional: require date
+                    }
                 >
                     {uploading ? "Uploading..." : "Upload"}
                 </Button>

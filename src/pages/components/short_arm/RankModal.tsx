@@ -18,7 +18,6 @@ import app from "../../../http_settings";
 import { logActivity } from "../utils";
 
 type GunsForm = {
-  // faid: string;
   serial_no: string;
   make: string;
   type: string;
@@ -42,7 +41,6 @@ type GunsForm = {
 };
 
 type CreateGunForm = {
-  // disposition: "ON_STOCK" | "FOR_RELEASE";
   guns: GunsForm;
 };
 
@@ -53,9 +51,7 @@ type CreateGunModalProps = {
 };
 
 const initialState: CreateGunForm = {
-  // disposition: "ON_STOCK",
   guns: {
-    // faid: "",
     serial_no: "",
     make: "",
     type: "",
@@ -79,6 +75,84 @@ const initialState: CreateGunForm = {
   },
 };
 
+const SectionTitle = ({ title }: { title: string }) => (
+  <Box sx={{ mb: 2 }}>
+    <Typography
+      variant="subtitle1"
+      sx={{
+        fontWeight: 700,
+        color: "primary.main",
+        mb: 0.5,
+      }}
+    >
+      {title}
+    </Typography>
+    <Divider />
+  </Box>
+);
+
+const SummaryBlock = ({
+  title,
+  qtyLabel,
+  qtyValue,
+  qtyOnChange,
+  valueLabel,
+  valueValue,
+  valueOnChange,
+}: {
+  title: string;
+  qtyLabel: string;
+  qtyValue: string;
+  qtyOnChange: (value: string) => void;
+  valueLabel: string;
+  valueValue: string;
+  valueOnChange: (value: string) => void;
+}) => (
+  <Paper
+    variant="outlined"
+    sx={{
+      p: 2,
+      borderRadius: 2,
+      backgroundColor: "#fafafa",
+    }}
+  >
+    <Typography
+      variant="subtitle2"
+      sx={{
+        fontWeight: 700,
+        mb: 2,
+        color: "text.primary",
+      }}
+    >
+      {title}
+    </Typography>
+
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label={qtyLabel}
+          type="number"
+          // inputMode="numeric"
+          value={qtyValue}
+          onChange={(e) => qtyOnChange(e.target.value)}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label={valueLabel}
+          type="number"
+          // inputMode="decimal"
+          value={valueValue}
+          onChange={(e) => valueOnChange(e.target.value)}
+        />
+      </Grid>
+    </Grid>
+  </Paper>
+);
+
 export default function CreateIssuanceModal({
   open,
   onClose,
@@ -88,7 +162,9 @@ export default function CreateIssuanceModal({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!open) setForm(initialState);
+    if (!open) {
+      setForm(initialState);
+    }
   }, [open]);
 
   const handleClose = () => {
@@ -99,33 +175,30 @@ export default function CreateIssuanceModal({
   const setGunsField = (key: keyof GunsForm, value: string) => {
     setForm((prev) => ({
       ...prev,
-      guns: { ...prev.guns, [key]: value as any },
+      guns: {
+        ...prev.guns,
+        [key]: value,
+      },
     }));
   };
 
   const canSubmit = useMemo(() => {
     return (
-      // form.guns.faid.trim() !== "" &&
       form.guns.serial_no.trim() !== "" &&
-      form.guns.make.trim() !== "" &&
-      form.guns.type.trim() !== ""
+      form.guns.make.trim() !== ""
+      // form.guns.type.trim() !== ""
     );
-  }, [form]);
+  }, [form.guns.serial_no, form.guns.make]);
 
   const handleSubmit = async () => {
     try {
       setSaving(true);
 
-      console.log(form)
-
       const fd = new FormData();
 
-      // fd.append("faid", form.guns.faid);
       fd.append("serial_no", form.guns.serial_no);
-
-      fd.append("make", form.guns.type);
-      // fd.append("kind", form.guns.kind);
-      fd.append("type", form.guns.type);
+      fd.append("make", form.guns.make);
+      fd.append("type", "Pistol");
       fd.append("caliber", form.guns.caliber);
       fd.append("property_no", form.guns.property_no);
       fd.append("acquisition_date", form.guns.acquisition_date);
@@ -137,10 +210,7 @@ export default function CreateIssuanceModal({
       );
       fd.append("source", form.guns.source);
       fd.append("status", form.guns.status);
-      // fd.append(
-      //   "validated",
-      //   form.guns.validated === "Yes" ? "Validated" : "Not Validated"
-      // );
+
       fd.append("balance_qty", form.guns.balance_qty);
       fd.append("balance_value", form.guns.balance_value);
       fd.append("on_hand_qty", form.guns.on_hand_qty);
@@ -149,15 +219,12 @@ export default function CreateIssuanceModal({
       fd.append("short_value", form.guns.short_value);
       fd.append("over_qty", form.guns.over_qty);
       fd.append("over_value", form.guns.over_value);
-      // fd.append("disposition", form.disposition);
 
       const res = await app.post("/api/guns/", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-
-      for (let [key, value] of fd.entries()) {
-        console.log(`${key}: ${value}`);
-      }
 
       const username = localStorage.getItem("username");
       const user_id = localStorage.getItem("id");
@@ -180,77 +247,6 @@ export default function CreateIssuanceModal({
       setSaving(false);
     }
   };
-
-  const SectionTitle = ({ title }: { title: string }) => (
-    <Box sx={{ mb: 2 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{
-          fontWeight: 700,
-          color: "primary.main",
-          mb: 0.5,
-        }}
-      >
-        {title}
-      </Typography>
-      <Divider />
-    </Box>
-  );
-
-  const SummaryBlock = ({
-    title,
-    qtyLabel,
-    qtyValue,
-    qtyOnChange,
-    valueLabel,
-    valueValue,
-    valueOnChange,
-  }: {
-    title: string;
-    qtyLabel: string;
-    qtyValue: string;
-    qtyOnChange: (value: string) => void;
-    valueLabel: string;
-    valueValue: string;
-    valueOnChange: (value: string) => void;
-  }) => (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        backgroundColor: "#fafafa",
-      }}
-    >
-      <Typography
-        variant="subtitle2"
-        sx={{ fontWeight: 700, mb: 2, color: "text.primary" }}
-      >
-        {title}
-      </Typography>
-
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label={qtyLabel}
-            type="number"
-            value={qtyValue}
-            onChange={(e) => qtyOnChange(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label={valueLabel}
-            type="number"
-            value={valueValue}
-            onChange={(e) => valueOnChange(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-    </Paper>
-  );
 
   return (
     <Dialog
@@ -278,6 +274,7 @@ export default function CreateIssuanceModal({
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Add New Firearm
         </Typography>
+
         <Typography variant="body2" color="text.secondary">
           Fill in the firearm information below.
         </Typography>
@@ -304,15 +301,6 @@ export default function CreateIssuanceModal({
           <SectionTitle title="Basic Information" />
 
           <Grid container spacing={2.5}>
-            {/* <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="FAID"
-                value={form.guns.faid}
-                onChange={(e) => setGunsField("faid", e.target.value)}
-              />
-            </Grid> */}
-
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -335,19 +323,11 @@ export default function CreateIssuanceModal({
               <TextField
                 fullWidth
                 label="Type"
-                value={form.guns.type}
-                onChange={(e) => setGunsField("type", e.target.value)}
+                value="Pistol"
+                disabled
+                // onChange={(e) => setGunsField("type", "e.target.value")}
               />
             </Grid>
-
-            {/* <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Kind"
-                value={form.guns.kind}
-                onChange={(e) => setGunsField("kind", e.target.value)}
-              />
-            </Grid> */}
 
             <Grid item xs={12} sm={6}>
               <TextField
@@ -391,6 +371,7 @@ export default function CreateIssuanceModal({
                 fullWidth
                 label="Acquisition Cost"
                 type="number"
+                inputMode="decimal"
                 value={form.guns.acquisition_cost}
                 onChange={(e) =>
                   setGunsField("acquisition_cost", e.target.value)
@@ -403,6 +384,7 @@ export default function CreateIssuanceModal({
                 fullWidth
                 label="Cost of Repair"
                 type="number"
+                inputMode="decimal"
                 value={form.guns.cost_of_repair}
                 onChange={(e) => setGunsField("cost_of_repair", e.target.value)}
               />
@@ -413,6 +395,7 @@ export default function CreateIssuanceModal({
                 fullWidth
                 label="Current Depreciated Value"
                 type="number"
+                inputMode="decimal"
                 value={form.guns.current_depreciated_value}
                 onChange={(e) =>
                   setGunsField("current_depreciated_value", e.target.value)
@@ -435,50 +418,28 @@ export default function CreateIssuanceModal({
                 onChange={(e) => setGunsField("source", e.target.value)}
               >
                 <MenuItem value="PROCURED">PROCURED</MenuItem>
-                <MenuItem value="DONATED">DONATED</MenuItem>
-                <MenuItem value="TRANSFERRED">TRANSFERRED</MenuItem>
+                <MenuItem value="DONATED_FOUND_AT_STATION">
+                  DONATED FOUND AT STATION
+                </MenuItem>
+                <MenuItem value="LOANED">LOANED</MenuItem>
               </TextField>
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <TextField
+                select
                 fullWidth
-                label="Status"
+                label="Source"
                 value={form.guns.status}
                 onChange={(e) => setGunsField("status", e.target.value)}
-              />
+              >
+                <MenuItem value="SVC">SVC</MenuItem>
+                <MenuItem value="UNSVC">
+                  UNSVC
+                </MenuItem>
+                <MenuItem value="BER">BER</MenuItem>
+              </TextField>
             </Grid>
-
-            {/* <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                fullWidth
-                label="Validated"
-                value={form.guns.validated}
-                onChange={(e) => setGunsField("validated", e.target.value)}
-              >
-                <MenuItem value="Yes">Yes</MenuItem>
-                <MenuItem value="No">No</MenuItem>
-              </TextField>
-            </Grid> */}
-
-            {/* <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                fullWidth
-                label="Disposition"
-                value={form.disposition}
-                onChange={(e) =>
-                  setForm((p) => ({
-                    ...p,
-                    disposition: e.target.value as CreateGunForm["disposition"],
-                  }))
-                }
-              >
-                <MenuItem value="ON_STOCK">ON STOCK</MenuItem>
-                <MenuItem value="FOR_RELEASE">FOR-RELEASE</MenuItem>
-              </TextField>
-            </Grid> */}
           </Grid>
 
           <Box sx={{ mt: 4 }}>
@@ -549,6 +510,7 @@ export default function CreateIssuanceModal({
         <Button onClick={handleClose} disabled={saving} color="inherit">
           Cancel
         </Button>
+
         <Button
           variant="contained"
           disabled={!canSubmit || saving}

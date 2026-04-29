@@ -58,7 +58,7 @@ const TurnInDialog: React.FC<Props> = ({
       <DialogContent sx={{ pt: 2 }}>
         <Stack spacing={2}>
           <Typography sx={{ fontWeight: 700 }}>
-            FAID: {getGun(row)?.faid ?? "-"}
+            Serial Number: {getGun(row)?.serial_no ?? "-"}
           </Typography>
 
           <TextField
