@@ -27,6 +27,8 @@ import StoreIcon from "@mui/icons-material/Store";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 
+import TablePagination from "@mui/material/TablePagination";
+
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -44,7 +46,10 @@ import {
 import app from "../http_settings";
 
 type ChartItem = { name: string; value: number };
-type IssuedYearItem = { month: string; issued: number };
+type IssuedYearItem = {
+  year: string;
+  issued: number;
+};
 
 type DashboardStats = {
   total: number;
@@ -55,22 +60,41 @@ type DashboardStats = {
 
 type IssuedSampleRow = {
   id: number;
-  faid: string;
   serial_no: string;
-  firearm_type: string;
+  type: string;
+  make: string;
   issued_to: string;
+  rank?: string;
   unit: string;
+  sub_unit: string;
   date_issued: string;
 };
 
-const issuedMonthly: IssuedYearItem[] = [
-  { month: "2020", issued: 40 },
-  { month: "2021", issued: 28 },
-  { month: "2022", issued: 36 },
-  { month: "2023", issued: 22 },
-  { month: "2024", issued: 31 },
-  { month: "2025", issued: 45 },
-];
+type AcquisitionYearItem = {
+  year: string;
+  count: number;
+};
+
+// const issuedMonthly: IssuedYearItem[] = [
+//   { month: "2020", issued: 40 },
+//   { month: "2021", issued: 28 },
+//   { month: "2022", issued: 36 },
+//   { month: "2023", issued: 22 },
+//   { month: "2024", issued: 31 },
+//   { month: "2025", issued: 45 },
+// ];
+
+type AcquisitionRow = {
+  id: number;
+  serial_no: string;
+  type: string;
+  make: string;
+  caliber: string;
+  property_no: string;
+  acquisition_date: string | null;
+  status: string;
+  disposition: string;
+};
 
 const COLORS = [
   "#1976d2",
@@ -100,10 +124,10 @@ function normalizeChartData(input: any): ChartItem[] {
   const raw = Array.isArray(input)
     ? input
     : Array.isArray(input?.data)
-    ? input.data
-    : Array.isArray(input?.results)
-    ? input.results
-    : [];
+      ? input.data
+      : Array.isArray(input?.results)
+        ? input.results
+        : [];
 
   return raw
     .map((item: any) => {
@@ -166,13 +190,42 @@ export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedYearRows, setSelectedYearRows] = useState<IssuedSampleRow[]>([]);
 
+  const [issuedMonthly, setIssuedMonthly] = useState<IssuedYearItem[]>([]);
+
+  const [shortArmAcquisition, setShortArmAcquisition] = useState<AcquisitionYearItem[]>([]);
+  const [longArmAcquisition, setLongArmAcquisition] = useState<AcquisitionYearItem[]>([]);
+
+  const [openAcquisitionModal, setOpenAcquisitionModal] = useState(false);
+  const [acquisitionTitle, setAcquisitionTitle] = useState("");
+  const [acquisitionRows, setAcquisitionRows] = useState<AcquisitionRow[]>([]);
+
+
+  const [acquisitionPage, setAcquisitionPage] = useState(0);
+  const [acquisitionPageSize, setAcquisitionPageSize] = useState(10);
+  const [acquisitionCount, setAcquisitionCount] = useState(0);
+  const [selectedAcquisitionYear, setSelectedAcquisitionYear] = useState("");
+  const [selectedAcquisitionType, setSelectedAcquisitionType] = useState<"short" | "long">("short");
+
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const [shortRes, longRes, gunsRes] = await Promise.allSettled([
+        const [
+
+          shortRes,
+          longRes,
+          gunsRes,
+          issuedSummaryRes,
+          shortAcquisitionRes,
+          longAcquisitionRes,
+
+        ] = await Promise.allSettled([
           app.get("/api/short_arm_pie/"),
           app.get("/api/long_arm_pie/"),
           app.get("/api/dashboard/"),
+          app.get("/api/issued-summary-by-year/"),
+          app.get("/api/short-arm-acquisition-summary/"),
+          app.get("/api/long-arm-acquisition-summary/"),
         ]);
 
         if (shortRes.status === "fulfilled") {
@@ -192,6 +245,35 @@ export default function Dashboard() {
             onStock: Number(data?.on_stock ?? data?.on_stock_count ?? 0),
             problem: Number(data?.problem ?? data?.unsvc_count ?? data?.ber_count ?? 0),
           });
+        }
+
+        if (issuedSummaryRes.status === "fulfilled") {
+          const data = issuedSummaryRes.value.data;
+
+          setIssuedMonthly(
+            data.map((item: any) => ({
+              year: String(item.year),
+              issued: Number(item.issued || 0),
+            }))
+          );
+        }
+
+        if (shortAcquisitionRes.status === "fulfilled") {
+          setShortArmAcquisition(
+            shortAcquisitionRes.value.data.map((item: any) => ({
+              year: String(item.year),
+              count: Number(item.count || 0),
+            }))
+          );
+        }
+
+        if (longAcquisitionRes.status === "fulfilled") {
+          setLongArmAcquisition(
+            longAcquisitionRes.value.data.map((item: any) => ({
+              year: String(item.year),
+              count: Number(item.count || 0),
+            }))
+          );
         }
       } catch (error) {
         console.error("Dashboard error:", error);
@@ -214,12 +296,73 @@ export default function Dashboard() {
     [longArm]
   );
 
-  const handleBarClick = (data: any) => {
-    if (!data?.month) return;
+  const handleBarClick = async (data: any) => {
+    const year = data?.year;
+    if (!year) return;
 
-    setSelectedYear(data.month);
-    setSelectedYearRows(issuedDetailsByYear[data.month] || []);
+    setSelectedYear(year);
+    setSelectedYearRows([]);
     setOpenIssuedModal(true);
+
+    try {
+      const res = await app.get(`/api/issued-details-by-year/${year}/`);
+      setSelectedYearRows(res.data || []);
+    } catch (error) {
+      console.error("Failed to fetch issued details:", error);
+      setSelectedYearRows([]);
+    }
+  };
+
+  const handleAcquisitionBarClick = async (
+    armType: "short" | "long",
+    data: any
+  ) => {
+    const yearLabel = data?.year;
+    if (!yearLabel) return;
+
+    const yearParam = yearLabel === "No Date" ? "no-date" : yearLabel;
+
+    setSelectedAcquisitionType(armType);
+    setSelectedAcquisitionYear(yearParam);
+    setAcquisitionPage(0);
+    setAcquisitionPageSize(10);
+
+    setAcquisitionTitle(
+      `${armType === "short" ? "Short Arm" : "Long Arm"} Acquisition - ${yearLabel}`
+    );
+
+    setAcquisitionRows([]);
+    setOpenAcquisitionModal(true);
+
+    fetchAcquisitionDetails(armType, yearParam, 0, 10);
+  };
+
+  const fetchAcquisitionDetails = async (
+    armType: "short" | "long",
+    yearParam: string,
+    page = 0,
+    pageSize = 10
+  ) => {
+    try {
+      const endpoint =
+        armType === "short"
+          ? `/api/short-arm-acquisition-details/${yearParam}/`
+          : `/api/long-arm-acquisition-details/${yearParam}/`;
+
+      const res = await app.get(endpoint, {
+        params: {
+          page: page + 1,
+          page_size: pageSize,
+        },
+      });
+
+      setAcquisitionRows(res.data.results || []);
+      setAcquisitionCount(res.data.count || 0);
+    } catch (error) {
+      console.error("Failed to fetch acquisition details:", error);
+      setAcquisitionRows([]);
+      setAcquisitionCount(0);
+    }
   };
 
   return (
@@ -270,17 +413,30 @@ export default function Dashboard() {
 
             <Box sx={{ flex: 1, minHeight: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={issuedMonthly} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                <BarChart
+                  data={issuedMonthly}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+                  onClick={(chartState: any) => {
+                    if (!chartState?.activeLabel) return;
+
+                    const selected = issuedMonthly.find(
+                      (item) => item.year === chartState.activeLabel
+                    );
+
+                    if (selected) {
+                      handleBarClick(selected);
+                    }
+                  }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
+                  <XAxis dataKey="year" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip cursor={{ fill: "rgba(0,0,0,0.12)" }} />
+
                   <Bar
                     dataKey="issued"
                     fill="#6a1b9a"
                     radius={[8, 8, 0, 0]}
-                    onClick={handleBarClick}
-                    cursor="pointer"
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -290,6 +446,23 @@ export default function Dashboard() {
               Click a bar to view issued data for that year
             </Typography>
           </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <AcquisitionBarCard
+            title="Short Arm Acquisition Summary"
+            subtitle="Short firearms by acquisition year"
+            data={shortArmAcquisition}
+            onBarClick={(data) => handleAcquisitionBarClick("short", data)}
+          />
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <AcquisitionBarCard
+            title="Long Arm Acquisition Summary"
+            subtitle="Long firearms by acquisition year"
+            data={longArmAcquisition}
+            onBarClick={(data) => handleAcquisitionBarClick("long", data)}
+          />
         </Grid>
       </Grid>
 
@@ -314,6 +487,35 @@ export default function Dashboard() {
         onClose={() => setOpenIssuedModal(false)}
         selectedYear={selectedYear}
         rows={selectedYearRows}
+      />
+
+      <AcquisitionDetailsModal
+        open={openAcquisitionModal}
+        onClose={() => setOpenAcquisitionModal(false)}
+        title={acquisitionTitle}
+        rows={acquisitionRows}
+        count={acquisitionCount}
+        page={acquisitionPage}
+        pageSize={acquisitionPageSize}
+        onPageChange={(newPage) => {
+          setAcquisitionPage(newPage);
+          fetchAcquisitionDetails(
+            selectedAcquisitionType,
+            selectedAcquisitionYear,
+            newPage,
+            acquisitionPageSize
+          );
+        }}
+        onPageSizeChange={(newPageSize) => {
+          setAcquisitionPageSize(newPageSize);
+          setAcquisitionPage(0);
+          fetchAcquisitionDetails(
+            selectedAcquisitionType,
+            selectedAcquisitionYear,
+            0,
+            newPageSize
+          );
+        }}
       />
     </Box>
   );
@@ -677,6 +879,7 @@ function IssuedModal({
                 <TableCell sx={{ fontWeight: 800 }}>Make</TableCell>
                 <TableCell sx={{ fontWeight: 800 }}>Issued To</TableCell>
                 <TableCell sx={{ fontWeight: 800 }}>Unit</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Sub Unit</TableCell>
                 <TableCell sx={{ fontWeight: 800 }}>Date Issued</TableCell>
               </TableRow>
             </TableHead>
@@ -685,17 +888,20 @@ function IssuedModal({
               {rows.length > 0 ? (
                 rows.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell>{row.faid}</TableCell>
                     <TableCell>{row.serial_no}</TableCell>
-                    <TableCell>{row.firearm_type}</TableCell>
-                    <TableCell>{row.issued_to}</TableCell>
+                    <TableCell>{row.type}</TableCell>
+                    <TableCell>{row.make}</TableCell>
+                    <TableCell>
+                      {row.rank ? `${row.rank} ${row.issued_to}` : row.issued_to}
+                    </TableCell>
                     <TableCell>{row.unit}</TableCell>
+                    <TableCell>{row.sub_unit}</TableCell>
                     <TableCell>{row.date_issued}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={7} align="center">
                     No issued data found for {selectedYear}
                   </TableCell>
                 </TableRow>
@@ -705,6 +911,173 @@ function IssuedModal({
         </Paper>
       </Box>
     </Dialog>
+  );
+}
+
+function AcquisitionDetailsModal({
+  open,
+  onClose,
+  title,
+  rows,
+  count,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  rows: AcquisitionRow[];
+  count: number;
+  page: number;
+  pageSize: number;
+  onPageChange: (newPage: number) => void;
+  onPageSizeChange: (newPageSize: number) => void;
+}) {
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
+      <Box sx={{ p: 2, display: "flex", alignItems: "center" }}>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            {title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Total records: {count}
+          </Typography>
+        </Box>
+
+        <IconButton onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      <Divider />
+
+      <Box sx={{ p: 2 }}>
+        <Paper variant="outlined" sx={{ borderRadius: 3, overflow: "hidden" }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 800 }}>Serial No</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Type</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Make</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Caliber</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Property No</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Acquisition Date</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Disposition</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {rows.length > 0 ? (
+                rows.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.serial_no || "-"}</TableCell>
+                    <TableCell>{row.type || "-"}</TableCell>
+                    <TableCell>{row.make || "-"}</TableCell>
+                    <TableCell>{row.caliber || "-"}</TableCell>
+                    <TableCell>{row.property_no || "-"}</TableCell>
+                    <TableCell>{row.acquisition_date || "No Date"}</TableCell>
+                    <TableCell>{row.status || "-"}</TableCell>
+                    <TableCell>{row.disposition || "-"}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center">
+                    No firearm records found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <TablePagination
+            component="div"
+            count={count}
+            page={page}
+            rowsPerPage={pageSize}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            onPageChange={(_, newPage) => onPageChange(newPage)}
+            onRowsPerPageChange={(event) => {
+              onPageSizeChange(parseInt(event.target.value, 10));
+            }}
+          />
+        </Paper>
+      </Box>
+    </Dialog>
+  );
+}
+
+
+function AcquisitionBarCard({
+  title,
+  subtitle,
+  data,
+  onBarClick,
+}: {
+  title: string;
+  subtitle: string;
+  data: AcquisitionYearItem[];
+  onBarClick: (data: AcquisitionYearItem) => void;
+}) {
+  return (
+    <Paper
+      elevation={2}
+      sx={{
+        p: 2,
+        borderRadius: 4,
+        height: 420,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      <Header title={title} subtitle={subtitle} />
+
+      <Divider sx={{ my: 1.5 }} />
+
+      <Box sx={{ flex: 1, minHeight: 0, cursor: "pointer" }}>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+              onClick={(chartState: any) => {
+                if (!chartState?.activeLabel) return;
+
+                const selected = data.find(
+                  (item) => item.year === chartState.activeLabel
+                );
+
+                if (selected) {
+                  onBarClick(selected);
+                }
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="year" />
+              <YAxis allowDecimals={false} />
+              <Tooltip cursor={{ fill: "rgba(0,0,0,0.12)" }} />
+
+              <Bar
+                dataKey="count"
+                name="Firearms"
+                fill="#1976d2"
+                radius={[8, 8, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <EmptyChartMessage message="No acquisition data available" />
+        )}
+      </Box>
+
+      <Typography variant="caption" color="text.secondary">
+        Click a column to view firearm records. Blank dates are grouped as No Date.
+      </Typography>
+    </Paper>
   );
 }
 

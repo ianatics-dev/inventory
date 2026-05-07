@@ -29,7 +29,7 @@ export type EditFormType = {
   cost_of_repair: "",
   current_depreciated_value: "",
   source: "PROCURED",
-  status: "",
+  status: "SVC",
   validated: "No",
   balance_qty: "",
   balance_value: "",
@@ -181,8 +181,8 @@ const EditFirearmDialog: React.FC<Props> = ({
               <TextField
                 fullWidth
                 label="Serial No."
-              value={editForm.serial_no}
-              onChange={(e) => onChange("serial_no", e.target.value)}
+                value={editForm.serial_no}
+                onChange={(e) => onChange("serial_no", e.target.value)}
               />
             </Grid>
 
@@ -190,8 +190,8 @@ const EditFirearmDialog: React.FC<Props> = ({
               <TextField
                 fullWidth
                 label="Make"
-              value={editForm.make}
-              onChange={(e) => onChange("make", e.target.value)}
+                value={editForm.make}
+                onChange={(e) => onChange("make", e.target.value)}
               />
             </Grid>
 
@@ -199,8 +199,8 @@ const EditFirearmDialog: React.FC<Props> = ({
               <TextField
                 fullWidth
                 label="Type"
-              value={editForm.type}
-              onChange={(e) => onChange("type", e.target.value)}
+                value={editForm.type}
+                onChange={(e) => onChange("type", e.target.value)}
               />
             </Grid>
 
@@ -217,8 +217,8 @@ const EditFirearmDialog: React.FC<Props> = ({
               <TextField
                 fullWidth
                 label="Caliber"
-              value={editForm.caliber}
-              onChange={(e) => onChange("caliber", e.target.value)}
+                value={editForm.caliber}
+                onChange={(e) => onChange("caliber", e.target.value)}
               />
             </Grid>
 
@@ -226,8 +226,8 @@ const EditFirearmDialog: React.FC<Props> = ({
               <TextField
                 fullWidth
                 label="Property No."
-              value={editForm.property_no}
-              onChange={(e) => onChange("property_no", e.target.value)}
+                value={editForm.property_no}
+                onChange={(e) => onChange("property_no", e.target.value)}
               />
             </Grid>
 
@@ -237,10 +237,10 @@ const EditFirearmDialog: React.FC<Props> = ({
                 type="date"
                 label="Acquisition Date"
                 InputLabelProps={{ shrink: true }}
-              value={editForm.acquisition_date}
-              onChange={(e) =>
-                onChange("acquisition_date", e.target.value)
-              }
+                value={editForm.acquisition_date}
+                onChange={(e) =>
+                  onChange("acquisition_date", e.target.value)
+                }
               />
             </Grid>
           </Grid>
@@ -255,10 +255,10 @@ const EditFirearmDialog: React.FC<Props> = ({
                 fullWidth
                 label="Acquisition Cost"
                 type="number"
-              value={editForm.acquisition_cost}
-              onChange={(e) =>
-                onChange("acquisition_cost", e.target.value)
-              }
+                value={editForm.acquisition_cost}
+                onChange={(e) =>
+                  onChange("acquisition_cost", e.target.value)
+                }
               />
             </Grid>
 
@@ -267,8 +267,8 @@ const EditFirearmDialog: React.FC<Props> = ({
                 fullWidth
                 label="Cost of Repair"
                 type="number"
-              value={editForm.cost_of_repair}
-              onChange={(e) => onChange("cost_of_repair", e.target.value)}
+                value={editForm.cost_of_repair}
+                onChange={(e) => onChange("cost_of_repair", e.target.value)}
               />
             </Grid>
 
@@ -277,10 +277,10 @@ const EditFirearmDialog: React.FC<Props> = ({
                 fullWidth
                 label="Current Depreciated Value"
                 type="number"
-              value={editForm.current_depreciated_value}
-              onChange={(e) =>
-                onChange("current_depreciated_value", e.target.value)
-              }
+                value={editForm.current_depreciated_value}
+                onChange={(e) =>
+                  onChange("current_depreciated_value", e.target.value)
+                }
               />
             </Grid>
           </Grid>
@@ -295,8 +295,8 @@ const EditFirearmDialog: React.FC<Props> = ({
                 select
                 fullWidth
                 label="Source"
-              value={editForm.source}
-              onChange={(e) => onChange("source", e.target.value)}
+                value={editForm.source}
+                onChange={(e) => onChange("source", e.target.value)}
               >
                 <MenuItem value="PROCURED">PROCURED</MenuItem>
                 <MenuItem value="DONATED">DONATED</MenuItem>
@@ -306,11 +306,16 @@ const EditFirearmDialog: React.FC<Props> = ({
 
             <Grid item xs={12} sm={6}>
               <TextField
+                select
                 fullWidth
                 label="Status"
-              // value={form.guns.status}
-              // onChange={(e) => setGunsField("status", e.target.value)}
-              />
+                value={editForm.status}
+                onChange={(e) => onChange("status", e.target.value)}
+              >
+                <MenuItem value="SVC">SVC</MenuItem>
+                <MenuItem value="UNSVC">UNSVC</MenuItem>
+                <MenuItem value="BER">BER</MenuItem>
+              </TextField>
             </Grid>
 
             {/* <Grid item xs={12} sm={6}>

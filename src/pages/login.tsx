@@ -81,9 +81,9 @@ const Landing: React.FC = () => {
     () =>
       [
         { key: "home", label: "HOME" },
-        { key: "services", label: "SERVICES" },
-        { key: "features", label: "FEATURES" },
-        { key: "contact", label: "CONTACT" },
+        // { key: "services", label: "SERVICES" },
+        // { key: "features", label: "FEATURES" },
+        // { key: "contact", label: "CONTACT" },
       ] as { key: TabKey; label: string }[],
     []
   );
@@ -218,11 +218,11 @@ const Landing: React.FC = () => {
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="img" src={logo} alt="Logo" sx={{ width: 40, height: 40 }} />
             <Typography sx={{ color: "#fff", fontWeight: 900, letterSpacing: 1 }}>
-              FIMS
+              PARDS
             </Typography>
             <Chip
               size="small"
-              label="Firearms Inventory Management System"
+              label="Property Accountability Records and Disposal System"
               sx={{
                 ml: 1,
                 display: { xs: "none", md: "inline-flex" },
@@ -294,9 +294,9 @@ const Landing: React.FC = () => {
               textShadow: "0 12px 40px rgba(0,0,0,0.6)",
             }}
           >
-            Firearms Inventory
+            Property Accountability 
             <br />
-            Management System
+            Records and Disposal System
           </Typography>
           <Grid container spacing={3} alignItems="center">
             {/* LEFT */}

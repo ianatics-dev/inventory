@@ -94,7 +94,6 @@ const FirearmDetailsDialog: React.FC<Props> = ({
         });
         formData.append("date", date);
 
-        console.log(formData)
         try {
             const response = await app.post(
                 `/api/guns/${gunId}/upload_par/`,

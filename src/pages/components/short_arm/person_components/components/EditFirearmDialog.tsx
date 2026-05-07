@@ -18,11 +18,12 @@ type EditFormType = {
   sub_unit: string;
   station: string;
   issued_unit: string;
-  faid: string;
+  // faid: string;
   serial_no: string;
   make: string;
-  model: string;
-  kind: string;
+  // model: string;
+  type: string;
+  // kind: string;
   caliber: string;
   validated: string;
 };
@@ -88,16 +89,16 @@ const EditFirearmDialog: React.FC<Props> = ({
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <TextField
               label="Station"
               fullWidth
               value={editForm.station}
               onChange={(e) => onChange("station", e.target.value)}
             />
-          </Grid>
+          </Grid> */}
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <TextField
               label="Issuing Unit"
               fullWidth
@@ -108,7 +109,7 @@ const EditFirearmDialog: React.FC<Props> = ({
 
           <Grid item xs={12} md={6}>
             <TextField label="FAID" fullWidth value={editForm.faid} disabled />
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={12} md={6}>
             <TextField label="Serial No." fullWidth value={editForm.serial_no} disabled />
@@ -118,21 +119,21 @@ const EditFirearmDialog: React.FC<Props> = ({
             <TextField label="Make" fullWidth value={editForm.make} disabled />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <TextField label="Model" fullWidth value={editForm.model} disabled />
-          </Grid>
+          </Grid> */}
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <TextField label="Kind" fullWidth value={editForm.kind} disabled />
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={12} md={6}>
             <TextField label="Caliber" fullWidth value={editForm.caliber} disabled />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <TextField label="Validated" fullWidth value={editForm.validated} disabled />
-          </Grid>
+          </Grid> */}
         </Grid>
       </DialogContent>
 
